@@ -47,7 +47,10 @@ void example_touchpad_read( lv_indev_drv_t * drv, lv_indev_data_t * data )
     uint8_t touchpad_cnt = 0;
 
     /* Read touch controller data */
-    esp_lcd_touch_read_data(drv->user_data);
+    if(!drv->user_data || esp_lcd_touch_read_data(drv->user_data) != ESP_OK) {
+        data->state = LV_INDEV_STATE_REL;
+        return;
+    }
 
     /* Get coordinates */
     bool touchpad_pressed = esp_lcd_touch_get_coordinates(drv->user_data, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
