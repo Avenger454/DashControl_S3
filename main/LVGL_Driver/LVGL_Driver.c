@@ -72,7 +72,9 @@ void lvgl_task(void *arg)
 {
     while (1) {
         uint32_t delay_ms = lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(delay_ms));
+        if(delay_ms > 20) delay_ms = 20;
+        TickType_t delay_ticks = pdMS_TO_TICKS(delay_ms);
+        vTaskDelay(delay_ticks > 0 ? delay_ticks : 1);
     }
 }
 
@@ -96,6 +98,7 @@ void LVGL_Init(void)
         MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL
     );
 
+    assert(buf1 && buf2);
     lv_disp_draw_buf_init(
         &disp_buf,
         buf1,
@@ -151,6 +154,6 @@ void LVGL_Init(void)
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 1000)); 
 
-    xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 8192, NULL, 5, NULL, 1);
+    /* app_main starts lvgl_task after ui_init. */
 
 }
